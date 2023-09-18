@@ -1,4 +1,4 @@
-# This is the sample of integration with Crestron Sensor and Bookings ONE
+# This is the sample of integration with IoT Sensor and Bookings ONE
 
 To get started, you can:
 
