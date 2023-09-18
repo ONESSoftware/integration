@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sample of Integration with Crestron Sensor and Bookings ONE</title>
+    
+    <script>
+        let isOccupied = true;
+        let interval = 60;
+
+        let signalSender;
+
+
+        function sendSensorDataToBookingsOne () {
+
+            const normalizedUrl = document.getElementById("serverUrl").value;
+            const accessId = document.getElementById("accessID").value;
+            const accessToken = document.getElementById("accessToken").value;
+
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", `${normalizedUrl}/api/external/iot-devices/v1/data`);
+            xhr.setRequestHeader("Content-Type", "application/json; charset=UTF-8");
+            xhr.setRequestHeader("Authorization", "accessToken");
+            const body = JSON.stringify({
+                accessId: accessId,
+                timestamp: new Date(),
+                data: {
+                    isConnected : true,
+                    isOccupied,
+                },
+            });
+            xhr.onload = function() {
+                if (xhr.readyState == 4 && xhr.status == 201) {
+                    console.log(JSON.parse(xhr.responseText));
+                } else {
+                    console.log(`Error: ${xhr.status}`);
+                }
+            };
+            xhr.send(body);
+        };
+
+        function updateSensorDataToBookingsOne(updatedStatus){
+            isOccupied = updatedStatus;
+            changeSignal();
+        }
+
+        
+        function changeSignal() {
+            if (!!signalSender) {
+                clearInterval(signalSender);
+                signalSender = null;
+            }
+            sendSensorDataToBookingsOne();
+            signalSender = setInterval(sendSensorDataToBookingsOne, interval * 1000);
+        }
+
+    </script>
+</head>
+
+<body>
+    <h1>Sample of Integration with Crestron Sensor and Bookings ONE</h1>
+
+    <p>Server url: e.g. (xxx.bookings.one)</p>
+    <input type="text" id="serverUrl" name="serverUrl">
+
+    <p>Access token: Created In (Admin Console > Settings > API Authentication)</p>
+    <input type="text" id="accessToken" name="accessToken">
+
+    <p>Access ID: Created Sensor in IoT, access ID</p>
+    <input type="text" id="accessID" name="accessID">
+
+    <p>Input for sending interval (Default 60s)</p>
+    <input type="text" id="sendInterval" name="sendInterval">
+
+
+    <p>
+        <b>Current status:</b> <span id="occupiedStatus" style="display:block">Occupied</span> <span id="nobodyStatus" style="display:none">Nobody</span>
+    </p>
+    <p>
+        <button onclick="changeSignal()">Start Sending Signal</button>
+        <button onclick="updateSensorDataToBookingsOne(true)">Switch to Occupied Status</button>
+        <button onclick="updateSensorDataToBookingsOne(false)">Switch to Nobody Status</button>
+    </p>
+
+</body>
+
+
+</html>
